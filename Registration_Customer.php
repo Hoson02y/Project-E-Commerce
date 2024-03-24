@@ -1,21 +1,18 @@
 <?php
-
 include_once 'DBconn.php';
 
-if (isset($_POST['submit'])) { // Corrected the typo here
-
-    // Check that all required fields are filled in
-    if(empty($_POST['username']) || empty($_POST['email']) || empty($_POST['phone']) || empty($_POST['password'])) {
+if (isset($_POST['submit'])) {
+    if(empty($_POST['username']) || empty($_POST['email']) || empty($_POST['phone']) || empty($_POST['password']) || empty($_POST['confirm_password'])) {
         echo "<script>alert('Some inputs are empty');</script>";
+    } else if ($_POST['password'] !== $_POST['confirm_password']) { // Check if passwords match
+        echo "<script>alert('Passwords do not match');</script>";
     } else {
         $username = $_POST['username'];
         $email = $_POST['email'];
         $phone = $_POST['phone'];
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Encrypt the password
 
-        $insert = $conn->prepare("INSERT INTO customers (username, email, phone, password) 
-        VALUES (:username, :email, :phone, :password)");
-
+        $insert = $conn->prepare("INSERT INTO customers (username, email, phone, password) VALUES (:username, :email, :phone, :password)");
         $insert->execute([
             ":username" => $username,
             ":email" => $email,
@@ -24,12 +21,10 @@ if (isset($_POST['submit'])) { // Corrected the typo here
         ]);
 
         header("Location: Login.php");
-        exit(); // Important to prevent further script execution
+        exit(); 
     }
 }
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -51,6 +46,9 @@ if (isset($_POST['submit'])) { // Corrected the typo here
 
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required><br><br>
+
+    <label for="confirm_password">Confirm Password:</label>
+    <input type="password" id="confirm_password" name="confirm_password" required><br><br>
 
     <input type="submit" name="submit" value="Register">
 </form>
