@@ -1,51 +1,39 @@
+
+
 <?php
-session_start(); 
 
 include_once 'DBconn.php'; 
 
 if (isset($_POST['submit'])) {
-    if (!empty($_POST['email']) && !empty($_POST['password'])) {
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-
-        $stmtCustomer = $conn->prepare("SELECT * FROM customers WHERE email = :email");
-        $stmtSupplier = $conn->prepare("SELECT * FROM suppliers WHERE email = :email");
-
-        $stmtCustomer->bindParam(':email', $email);
-        $stmtSupplier->bindParam(':email', $email);
-
-        $stmtCustomer->execute();
-        $stmtSupplier->execute();
-
-        $userType = null;
-        $user = null;
-
-        if ($stmtCustomer->rowCount() > 0) {
-            $userType = 'customer';
-            $user = $stmtCustomer->fetch(PDO::FETCH_ASSOC);
-        } elseif ($stmtSupplier->rowCount() > 0) {
-            $userType = 'supplier';
-            $user = $stmtSupplier->fetch(PDO::FETCH_ASSOC);
-        }
-
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['user_type'] = $userType; 
-
-            
-            if ($userType == 'customer') {
-                header("Location: index.php"); 
-            } else if ($userType == 'supplier') {
-                header("Location: header.php"); 
-            }
-            exit();
-        } else {
-            echo "<script>alert('Email or password is incorrect.');</script>";
-        }
+    if (empty($_POST['email']) || empty($_POST['password'])) {
+        echo "<script>alert('One or more inputs are empty');</script>";
     } else {
-        echo "<script>alert('One or both fields are empty.');</script>";
+        $email = $_POST['email'];
+        $password = $_POST['password']; 
+
+        $login = $conn->query("SELECT * FROM customers WHERE email = '$email'");
+        $login->execute();
+
+        $fetch = $login->fetch(PDO::FETCH_ASSOC);
+
+        if($login->rowCount() > 0) {
+
+            if(password_verify($password,$fetch['password'])){
+              $_session['username'] =$fetch['username'];
+              $_session['user_id'] =$fetch['id'];
+
+              header("location:index.php");
+            }else {
+                echo "<script>atert('email or password are wrong');</script>";
+            }
+            } else {
+                echo "<script>atert('email or password are wrong');</script>";
+
+            } 
+        
+
     }
+
 }
 ?>
 
@@ -53,18 +41,18 @@ if (isset($_POST['submit'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Log In</title>
+    <title>Login</title>
 </head>
 <body>
 
-<form action="" method="post">
+<form action="" method="post"> <!-- The action should point to the PHP script, if separate -->
     <label for="email">Email:</label>
     <input type="email" id="email" name="email" required><br><br>
 
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required><br><br>
 
-    <input type="submit" name="submit" value="Submit">
+    <input type="submit" name="submit" value="Login">
 </form>
 
 </body>
